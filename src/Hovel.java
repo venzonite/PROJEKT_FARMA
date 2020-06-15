@@ -1,5 +1,6 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Hovel extends Building{
-    public List<Animal> animals;
+    public ArrayList<Chicken> animals;
 }
