@@ -1,5 +1,6 @@
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.concurrent.*;
@@ -44,6 +45,7 @@ public class Main {
 
         player = new Player();
         player.money = new BigDecimal(200000); //200.000 zł na start.
+        player.money = player.money.setScale(2, RoundingMode.HALF_EVEN);
 
         int counter = 0;
         for(Farm x : startingFarms)
@@ -176,10 +178,6 @@ public class Main {
 
                 chooseBuildingToBuy();
 
-
-
-
-
                 showAvailableActionsDialog();
                 return;
 
@@ -294,6 +292,49 @@ public class Main {
 
                     case 2:
 
+
+                        System.out.println("0. Powrót");
+
+                        c = 1;
+                        for(Seed x : availableSeedsToBuy)
+                        {
+                            BigDecimal seedCostx100 = x.seedCost.multiply(new BigDecimal(100));
+                            seedCostx100 = seedCostx100.setScale(2, RoundingMode.HALF_EVEN);
+
+                            System.out.println(c + ". " + x.seedName + " (Koszt za 100 sztuk: " + seedCostx100 + " zł)");
+                            c++;
+                        }
+
+                        writtenNumber = readNumberFromConsole();
+
+                        if(writtenNumber == 0)
+                            break;
+                        else {
+                            Integer selectedSeedIndex = writtenNumber - 1;
+
+                            if (selectedSeedIndex > availableSeedsToBuy.size() - 1) {
+                                System.out.println("(błąd) Takie nasiono nie istnieje.");
+                                break;
+                            }
+
+                            Seed seedWhichWannaBuy = availableSeedsToBuy.get(selectedSeedIndex);
+
+                            BigDecimal seedCostx100 = seedWhichWannaBuy.seedCost.multiply(new BigDecimal(100));
+                            seedCostx100 = seedCostx100.setScale(2, RoundingMode.HALF_EVEN);
+
+                            if (Utils.lessThan(player.money, seedCostx100)) {
+                                System.out.println("(błąd) Nie posiadasz tyle kasy, by kupić 100 sztuk tych nasion.");
+                                break;
+                            }
+
+                            player.money = player.money.subtract(seedCostx100);
+
+                            for(int i=0;i<100;i++) {
+                                player.seeds.add(seedWhichWannaBuy);
+                            }
+
+                            System.out.println("(Zakup nasiona) Zakupiono 100 szt. nasion");
+                        }
 
                         break;
                 }
