@@ -1,3 +1,5 @@
+import jdk.jshell.spi.ExecutionControl;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,7 +23,7 @@ public class Main {
     public static int currentYear = 2020;
     public static int currentWeek = 1;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
 
         System.out.println("Projekt FARMA - GRA - Mateusz Wejer");
         System.out.println("- Wybierz farmę startową (Wpisz numer od 1 do 10):");
@@ -66,7 +68,7 @@ public class Main {
         }
     }
 
-    public static void showAvailableActionsDialog() throws IOException {
+    public static void showAvailableActionsDialog() throws IOException, ExecutionControl.NotImplementedException {
 
         double sumOfHA = 0.0;
 
@@ -527,9 +529,7 @@ public class Main {
                 {
                     if(b.name.contains("todo")) //Stodoła
                     {
-                        //b.
-
-                        ((Warehouse)b).storedPlants.addAll(player.arableLands.get(arableLandIndex).plants); //tu gdzies blad
+                        ((Warehouse)b).storedPlants.addAll(player.arableLands.get(arableLandIndex).plants);
                         player.arableLands.get(arableLandIndex).plants.clear();
                     }
                 }
@@ -541,21 +541,161 @@ public class Main {
 
             case 7: //7. Sprzedaż roślin lub zwierząt
 
-                System.out.println("(info) Wybrano opcję \"Sprzedaż roślin lub zwierząt\"");
+                System.out.println("(info) Wybrano opcję \"Sprzedaż roślin, zwierząt lub jajek\"");
+
+                System.out.println("0. Powrót");
+                System.out.println("1. Sprzedaż roślin");
+                System.out.println("2. Sprzedaż zwierząt");
+                System.out.println("3. Sprzedaż jajek");
+
+                writtenNumber = readNumberFromConsole();
+
+                if(writtenNumber == 0)
+                    return;
+
+                if(writtenNumber > 3)
+                    return;
+
+                switch(writtenNumber)
+                {
+                    case 1:
+
+                        //Pobieranie stodoły głównej
+
+                        Integer farmIndexWithMainWarehouse = -1;
+                        Integer mainWarehouseIndex = -1;
+
+                        outerloop:
+                        for(int i=0;i<player.farms.size();i++)
+                        {
+
+                            for(int b=0;b<player.farms.get(i).buildings.size();b++)
+                            {
+                                if(farmIndexWithMainWarehouse == -1 && mainWarehouseIndex == -1) {
+                                    if (player.farms.get(i).buildings.get(b).name.contains("todo")) //Stodoła
+                                    {
+                                        farmIndexWithMainWarehouse = i;
+                                        mainWarehouseIndex = b;
+                                    }
+                                }
+                            }
+                        }
+
+                        if(farmIndexWithMainWarehouse == -1 && mainWarehouseIndex == -1)
+                        {
+                            System.out.println("(blad) Nie posiadasz stodoly.");
+                            return;
+                        }
+
+                        HashMap<String, ArrayList<Plant>> hashMap2 = new HashMap<String, ArrayList<Plant>>();
+
+                        //Tworzenie hash mapy, gdzie kluczem jest nazwa rośliny.
+                        for(Plant x : ((Warehouse)player.farms.get(farmIndexWithMainWarehouse).buildings.get(mainWarehouseIndex)).storedPlants)
+                        {
+                            if(x.weeksWithPossibilityToPlant.contains(currentWeek) == false)
+                                continue;
+
+                            if (!hashMap2.containsKey(x.name)) {
+                                ArrayList<Plant> list = new ArrayList<Plant>();
+                                list.add(x);
+
+                                hashMap2.put(x.name, list);
+                            } else {
+                                hashMap2.get(x.name).add(x);
+                            }
+                        }
+
+                        System.out.println("(Stodola glowna) Lista roslin na sprzedaz w stodole glownej:");
+                        System.out.println("0. Powrót");
+
+                        c = 1;
+                        keys = new ArrayList<String>();
+                        for(Map.Entry<String, ArrayList<Plant>> entry : hashMap2.entrySet()) {
+                            String key = entry.getKey();
+                            ArrayList<Plant> value = entry.getValue();
+                            keys.add(key);
+
+                            System.out.println(c + ". " + key + " (" + value.size() + " szt.)");
+                            c++;
+                        }
+
+                        writtenNumber = readNumberFromConsole();
+
+                        if(writtenNumber == 0)
+                            return;
+
+                        index = writtenNumber-1;
+
+                        if(index > hashMap2.size()-1)
+                        {
+                            return;
+                        }
+
+                        String keyForSell = keys.get(index);
+
+
+                        //((Warehouse)player.farms.get(farmIndexWithMainWarehouse).buildings.get(mainWarehouseIndex)).storedPlants.
+
+                        Iterator<Plant> i = ((Warehouse)player.farms.get(farmIndexWithMainWarehouse).buildings.get(mainWarehouseIndex)).storedPlants.iterator();
+                        while (i.hasNext()) {
+                            Plant s = i.next();
+
+                            if(s.name.equals(keyForSell))
+                            {
+                                i.remove();
+                                player.money = player.money.add(s.purchasePrice);
+                            }
+                        }
+
+
+                        System.out.println("(Sprzedaz roslin) Sprzedano rosliny.");
+
+                        break;
+
+                    case 2:
+
+                        //TODO: Logika sprzedazy zwierzat.
+                        throw new ExecutionControl.NotImplementedException("TODO: Logika sprzedazy zwierzat.");
+
+                    case 3:
+
+                                if(player.eggsCount == 0)
+                                {
+                                    System.out.println("(blad) Nie posiadasz zadnych jajek.");
+                                    return;
+                                }
+
+                                BigDecimal moneyFromEggs = new BigDecimal(2*player.eggsCount);
+                                moneyFromEggs.setScale(2, RoundingMode.HALF_EVEN);
+                                player.money = player.money.add(moneyFromEggs);
+
+                                System.out.println("(Sprzedaz jajek) Jajka zostaly sprzedane.");
+return;
+
+
+
+                    default: return;
+                }
 
                 showAvailableActionsDialog();
                 return;
 
-            case 8: //8. Sprawdzenie stanu zapasów
+            case 8: //8. Sprawdzenie stanu zapasów (W tym przypadku pobiera to po prostu stan stodoły głównej)
 
                 System.out.println("(info) Wybrano opcję \"Sprawdzenie stanu zapasów\"");
 
-                showAvailableActionsDialog();
+                showInfoFromMainMagazine();
+
+                writtenNumber = readNumberFromConsole();
+
                 return;
+
 
             case 9: //9. Przejrzenie informacji o posiadanych zwierzętach
 
                 System.out.println("(info) Wybrano opcję \"Przejrzenie informacji o posiadanych zwierzętach\"");
+
+                //TODO: Pokazac informacje o posiadanych zwierzetach
 
                 showAvailableActionsDialog();
                 return;
@@ -564,10 +704,11 @@ public class Main {
 
                 System.out.println("(info) Wybrano opcję \"Przejrzenie informacji o posiadanych sadzonkach i zasadzonych roślinach\"");
 
+                showInfoFromMainMagazine();
+                showInfoAboutPlantedSeeds();
+
                 showAvailableActionsDialog();
                 return;
-
-
         }
 
         //Akcje, które zdarzaja sie na koniec każdego tygodnia
@@ -579,6 +720,84 @@ public class Main {
 
         weekCounter++;
         currentWeek++;
+    }
+
+    public static void showInfoAboutPlantedSeeds()
+    {
+        for(ArableLand x : player.arableLands)
+        {
+            System.out.println("===================================");
+            System.out.println("Pole: " + x.name);
+
+            for(Seed s : x.seeds)
+            {
+                System.out.println(x.name);
+            }
+
+            for(Seed s : x.seeds)
+            {
+                System.out.println("Zasadzone nasiono: " + x.name);
+            }
+        }
+    }
+
+    public static void showInfoFromMainMagazine()
+    {
+        //Pobieranie stodoły głównej
+
+        Integer farmIndexWithMainWarehouse = -1;
+        Integer mainWarehouseIndex = -1;
+
+        outerloop:
+        for(int i=0;i<player.farms.size();i++)
+        {
+
+            for(int b=0;b<player.farms.get(i).buildings.size();b++)
+            {
+                if(farmIndexWithMainWarehouse == -1 && mainWarehouseIndex == -1) {
+                    if (player.farms.get(i).buildings.get(b).name.contains("todo")) //Stodoła
+                    {
+                        farmIndexWithMainWarehouse = i;
+                        mainWarehouseIndex = b;
+                    }
+                }
+            }
+        }
+
+        if(farmIndexWithMainWarehouse == -1 && mainWarehouseIndex == -1)
+        {
+            System.out.println("(blad) Nie posiadasz stodoly.");
+            return;
+        }
+
+        HashMap<String, ArrayList<Plant>> hashMap2 = new HashMap<String, ArrayList<Plant>>();
+
+        //Tworzenie hash mapy, gdzie kluczem jest nazwa rośliny.
+        for(Plant x : ((Warehouse)player.farms.get(farmIndexWithMainWarehouse).buildings.get(mainWarehouseIndex)).storedPlants)
+        {
+            if(x.weeksWithPossibilityToPlant.contains(currentWeek) == false)
+                continue;
+
+            if (!hashMap2.containsKey(x.name)) {
+                ArrayList<Plant> list = new ArrayList<Plant>();
+                list.add(x);
+
+                hashMap2.put(x.name, list);
+            } else {
+                hashMap2.get(x.name).add(x);
+            }
+        }
+
+        System.out.println("(Stodola glowna) Lista roslin w stodole glownej:");
+
+        var keys = new ArrayList<String>();
+        for(Map.Entry<String, ArrayList<Plant>> entry : hashMap2.entrySet()) {
+            String key = entry.getKey();
+            ArrayList<Plant> value = entry.getValue();
+            keys.add(key);
+
+            System.out.println(key + " (" + value.size() + " szt.)");
+        }
     }
 
     public static Integer readNumberFromConsole()
