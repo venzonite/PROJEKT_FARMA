@@ -17,9 +17,11 @@ public abstract class Animal {
 
     public Boolean isYoung;
     public int birthWeek; //Tydzień urodzenia zwierzęcia
+    public String name = "";
 
-    public Animal(BigDecimal buyCost, BigDecimal sellCost, double weightIncreasingTempo, int growthTimeToMaturity, int foodNeededPerWeek, ArrayList<Integer> acceptableFoodTypes, int chanceToMultiply, double weight, double maxWeight, Boolean isYoung, int birthWeek)
+    public Animal(String name, BigDecimal buyCost, BigDecimal sellCost, double weightIncreasingTempo, int growthTimeToMaturity, int foodNeededPerWeek, ArrayList<Integer> acceptableFoodTypes, int chanceToMultiply, double weight, double maxWeight, Boolean isYoung, int birthWeek)
     {
+        this.name = name;
         this.buyCost = buyCost;
         this.sellCost = sellCost;
         this.weightIncreasingTempo = weightIncreasingTempo;
@@ -31,5 +33,10 @@ public abstract class Animal {
         this.maxWeight = maxWeight;
         this.isYoung = isYoung;
         this.birthWeek = birthWeek;
+    }
+
+    public String getName()
+    {
+        return this.isYoung == true ? ("Mł. " + this.name) : this.name;
     }
 }

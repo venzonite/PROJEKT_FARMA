@@ -25,12 +25,12 @@ public class Farm
 
     public void getEggsFromChickens()
     {
-        //Kury znoszą jajka (przyjąłem, że 1 kura znosi 2 jajka na tydzień)
+        //Kury znoszą jajka (przyjąłem, że 1 kura znosi 1 jajko na tydzień)
         int eggsEarnedFromFarm = 0;
         for(Chicken chicken : this.chickens)
         {
-            Main.player.eggsCount += 2;
-            eggsEarnedFromFarm += 2;
+            Main.player.eggsCount += 1;
+            eggsEarnedFromFarm += 1;
         }
 
         System.out.println("(info) Otrzymałeś " + eggsEarnedFromFarm + " jajek z farmy: " + this.name);
@@ -48,7 +48,7 @@ public class Farm
                 acceptableFoodTypes.add(FoodTypes.MEAT.getValue());
                 acceptableFoodTypes.add(FoodTypes.SANDWICH.getValue());
 
-                Dog youngDog = new Dog(new BigDecimal(300), new BigDecimal(150), 0.5, 12, 14, acceptableFoodTypes, 3, 1.0, 20.0, true, Main.weekCounter);
+                Dog youngDog = new Dog("Pies", new BigDecimal(300), new BigDecimal(150), 0.5, 12, 14, acceptableFoodTypes, 3, 1.0, 20.0, true, Main.weekCounter);
 
                 this.dogs.add(youngDog);
                 System.out.println("(info) Twoje psy rozmnożyły się! Zyskujesz jednego małego pieska.");
@@ -56,7 +56,7 @@ public class Farm
         }
 
         //Jeżeli farma posiada conajmniej 2 koty, to jest mała szansa na rozmnożenie się.
-        if(this.dogs.size() >= 2)
+        if(this.cats.size() >= 2)
         {
             var d = Math.random(); // 3% procent szans rozmnożenie się
             if (d < 0.03) {
@@ -65,7 +65,7 @@ public class Farm
                 acceptableFoodTypes.add(FoodTypes.MEAT.getValue());
                 acceptableFoodTypes.add(FoodTypes.SANDWICH.getValue());
 
-                Cat youngCat = new Cat(new BigDecimal(300), new BigDecimal(150), 0.5, 12, 14, acceptableFoodTypes, 3, 1.0, 20.0, true, Main.weekCounter);
+                Cat youngCat = new Cat("Kot", new BigDecimal(300), new BigDecimal(150), 0.5, 12, 14, acceptableFoodTypes, 3, 1.0, 20.0, true, Main.weekCounter);
 
                 this.cats.add(youngCat);
                 System.out.println("(info) Twoje koty rozmnożyły się! Zyskujesz jednego małego kotka.");

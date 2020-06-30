@@ -14,6 +14,8 @@ public class Main {
     public static ArrayList<Farm> startingFarms;
     public static ArrayList<ArableLand> startingArableLands;
     public static ArrayList<Seed> availableSeedsToBuy;
+    public static ArrayList<Building> availableBuildingsToBuy;
+    public static ArrayList<Animal> availableAnimalsToBuy;
 
     public static Player player;
     public static int weekCounter = 1;
@@ -33,6 +35,12 @@ public class Main {
 
         availableSeedsToBuy = new ArrayList<Seed>();
         prepareAvailableSeedsToBuy();
+
+        availableBuildingsToBuy = new ArrayList<Building>();
+        prepareAvailableBuildingsToBuy();
+
+        availableAnimalsToBuy = new ArrayList<Animal>();
+        prepareAvailableAnimalsToBuy();
 
         player = new Player();
         player.money = new BigDecimal(200000); //200.000 zł na start.
@@ -146,14 +154,31 @@ public class Main {
                 System.out.println("(info) Wybrano opcję \"Zakup/sprzedaż ziemi uprawnej\"");
 
                 showBuySellArableLandDialog();
-
-
                 showAvailableActionsDialog();
+
                 return;
 
             case 3: //3. Zakup nowych budynków
 
                 System.out.println("(info) Wybrano opcję \"Zakup nowych budynków\"");
+
+
+
+
+                System.out.println("0. Powrót.");
+
+                counter = 1;
+                for(Building x : availableBuildingsToBuy)
+                {
+                    System.out.println(counter + ". " + x.name + " (koszt: " + x.cost + " zł)");
+                    counter++;
+                }
+
+                chooseBuildingToBuy();
+
+
+
+
 
                 showAvailableActionsDialog();
                 return;
@@ -161,6 +186,117 @@ public class Main {
             case 4: //4. Zakup zwierząt lub roślin
 
                 System.out.println("(info) Wybrano opcję \"Zakup zwierząt lub roślin\"");
+
+                System.out.println("0. Powrót");
+                System.out.println("1. Zakup zwierząt");
+                System.out.println("2. Zakup roślin (nasion)");
+
+                Integer writtenNumber = readNumberFromConsole();
+
+                switch(writtenNumber)
+                {
+                    case 0: break;
+                    case 1:
+
+                        System.out.println("0. Powrót");
+
+                        int c = 1;
+                        for(Animal x : availableAnimalsToBuy)
+                        {
+                            System.out.println(c + ". " + x.getName() + " (Koszt: " + x.buyCost + " zł)");
+                            c++;
+                        }
+
+                        writtenNumber = readNumberFromConsole();
+
+                        if(writtenNumber == 0)
+                            break;
+                        else
+                        {
+                            Integer selectedAnimalIndex = writtenNumber-1;
+
+                            if(selectedAnimalIndex > availableAnimalsToBuy.size()-1)
+                            {
+                                System.out.println("(błąd) Takie zwierzę nie istnieje.");
+                                break;
+                            }
+
+                            Animal animalWhoWannaBuy = availableAnimalsToBuy.get(selectedAnimalIndex);
+
+                            if(Utils.lessThan(player.money, animalWhoWannaBuy.buyCost)) {
+                                System.out.println("(błąd) Nie posiadasz tyle kasy, by kupić to zwierzę.");
+                                break;
+                            }
+
+                            System.out.println("(Zakup zwierzęcia) Wybierz farmę gdzie ma trafić zwierzę:");
+
+                            System.out.println("0. Powrót");
+
+                            counter = 1;
+                            for(Farm x : player.farms)
+                            {
+                                System.out.println(counter + ". " + x.name);
+                                counter++;
+                            }
+
+                            writtenNumber = readNumberFromConsole();
+
+                            if(writtenNumber == 0)
+                                break;
+
+                            Integer choosenFarmIndex = writtenNumber-1;
+
+                            if(choosenFarmIndex > player.farms.size()-1)
+                            {
+                                System.out.println("(błąd) Nie posiadasz takiej farmy.");
+                                break;
+                            }
+
+                            Farm selectedFarm = player.farms.get(choosenFarmIndex);
+
+                            if(animalWhoWannaBuy.getName().contains("ura")) //Jeżeli gracz kupuje kurę, to na farmie musi być kurnik.
+                            {
+                                Boolean hovelFound = false;
+                                for(Building b : selectedFarm.buildings)
+                                {
+                                    if(b.name.contains("urnik"))
+                                    {
+                                        hovelFound = true;
+                                    }
+                                }
+
+                                if(hovelFound == false)
+                                {
+                                    System.out.println("(błąd) Próbujesz kupić kurę na farmę, gdzie nie ma kurnika. Kup conajmniej 1 kurnik.");
+                                    break;
+                                }
+
+                                System.out.println("(Zakup kury) Kura trafila na twoja farme.");
+                                player.farms.get(choosenFarmIndex).chickens.add((Chicken) animalWhoWannaBuy);
+                            }
+                            else {
+                                if (animalWhoWannaBuy.getName().contains("ies")) //Jeżeli gracz kupuje psa
+                                {
+                                    player.farms.get(choosenFarmIndex).dogs.add((Dog) animalWhoWannaBuy);
+                                } else if (animalWhoWannaBuy.getName().contains("ot")) //Jeżeli gracz kupuje kota
+                                {
+                                    player.farms.get(choosenFarmIndex).cats.add((Cat) animalWhoWannaBuy);
+                                }
+
+                                System.out.println("(info) Zakupiono zwierzę.");
+
+                                player.money = player.money.subtract(animalWhoWannaBuy.buyCost);
+
+                            }
+                        }
+
+                        break;
+
+                    case 2:
+
+
+                        break;
+                }
 
                 showAvailableActionsDialog();
                 return;
@@ -219,6 +355,22 @@ public class Main {
 
         weekCounter++;
         currentWeek++;
+    }
+
+    public static Integer readNumberFromConsole()
+    {
+        Integer choosenNumber = -1;
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            choosenNumber = Integer.parseInt(br.readLine());
+            return choosenNumber;
+        }
+        catch(Exception e)
+        {
+            System.out.println("(błąd) Możesz podać tylko cyfry.");
+            return readNumberFromConsole();
+        }
     }
 
     //Akcje zaplanowane, które mają się dziać na koniec każdego tygodnia
@@ -536,20 +688,163 @@ public class Main {
         }
     }
 
+    public static boolean buyPlayerBuilding(int buildingId) throws IOException {
+        if(buildingId > availableBuildingsToBuy.size()-1)
+        {
+            System.out.println("(błąd) Taki budynek nie istnieje");
+
+            return false;
+        }
+
+        if(Utils.lessThan(player.money, availableBuildingsToBuy.get(buildingId).cost))
+        {
+            System.out.println("(błąd) Nie posiadasz kasy na zakup tego budynku.");
+
+            return false;
+        }
+        else {
+
+            //Pokazanie listy farm gracza, na ktorej budynek ma zostac utworzony
+
+            System.out.println("(Zakup budynku) Wybierz farmę, na której ma się pojawić budynek.");
+
+            System.out.println("0. Powrót");
+
+            int counter = 1;
+            for(Farm x : player.farms)
+            {
+                String buildingsOnFarm = "";
+
+                for(Building b : x.buildings)
+                {
+                    buildingsOnFarm += b.name + ",";
+                }
+
+                System.out.println(counter + ". " + x.name + " (Posiada budynki: " + buildingsOnFarm + ")");
+                counter++;
+            }
+
+            //Wczytywanie z klawiatury
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+            try {
+                int i = Integer.parseInt(br.readLine());
+                int farmIndex = i-1;
+
+                if(i == 0)
+                    return true;
+
+                if(i < 0 || farmIndex > player.farms.size()-1) {
+                    System.out.println("(błąd) Nie masz takiej farmy.");
+                    return false;
+                }
+
+                player.farms.get(farmIndex).buildings.add(availableBuildingsToBuy.get(buildingId));
+                player.money = player.money.subtract(availableBuildingsToBuy.get(buildingId).cost);
+                System.out.println("(info) Dodatkowy budynek został zakupiony.");
+
+                return true;
+
+            } catch(NumberFormatException | IOException nfe) {
+                System.err.println("(Błąd) Musisz podać numer.");
+                return chooseBuildingToBuy();
+            }
+        }
+    }
+
+    public static boolean chooseBuildingToBuy() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        try {
+            int i = Integer.parseInt(br.readLine());
+
+            if(i == 0)
+                return false;
+
+
+            boolean buyResult = buyPlayerBuilding(i-1);
+
+            if(buyResult == false)
+            {
+                return chooseBuildingToBuy();
+            }
+            else
+            {
+                return true;
+            }
+
+        } catch(NumberFormatException nfe) {
+            System.err.println("(Błąd) Musisz podać numer.");
+            return chooseBuildingToBuy();
+        }
+    }
+
     //Dodaje dostępne nasiona do kupna w sklepie
     public static void prepareAvailableSeedsToBuy()
     {
-        for(Integer i=0;i<10;i++)
-        {
-            var weeksWithPossibilityToPlant = new ArrayList<Integer>();
-            weeksWithPossibilityToPlant.add(4);
-            weeksWithPossibilityToPlant.add(5);
-            weeksWithPossibilityToPlant.add(6);
+        var weeksWithPossibilityToPlant = new ArrayList<Integer>();
+        weeksWithPossibilityToPlant.add(4);
+        weeksWithPossibilityToPlant.add(5);
+        weeksWithPossibilityToPlant.add(6);
+        Seed tmpSeed = new Seed("Nasiono zboża","Zboże", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 90, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+        availableSeedsToBuy.add(tmpSeed);
 
-            //utworzyć klase zboże, przenica itp i tam dodac ceny statyczne w przeliczeniu na hektar
-            Seed tmpSeed = new Seed("Nasiono zboża","Zboże", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 90, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
-            availableSeedsToBuy.add(tmpSeed);
-        }
+
+        weeksWithPossibilityToPlant = new ArrayList<Integer>();
+        weeksWithPossibilityToPlant.add(6);
+        tmpSeed = new Seed("Nasiono jęczmienia","Jęczmień", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+        availableSeedsToBuy.add(tmpSeed);
+
+        weeksWithPossibilityToPlant = new ArrayList<Integer>();
+        weeksWithPossibilityToPlant.add(6);
+        tmpSeed = new Seed("Nasiono pszenicy","Pszenica", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+        availableSeedsToBuy.add(tmpSeed);
+
+        weeksWithPossibilityToPlant = new ArrayList<Integer>();
+        weeksWithPossibilityToPlant.add(7);
+        tmpSeed = new Seed("Nasiono ziemniaka","Ziemniak", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+        availableSeedsToBuy.add(tmpSeed);
+    }
+
+    //Dodaje dostępne budynki do kupna w sklepie
+    public static void prepareAvailableBuildingsToBuy()
+    {
+        int rand = ThreadLocalRandom.current().nextInt(5000, 10000);
+        Hovel hovel = new Hovel();
+        hovel.cost = new BigDecimal(rand);
+        hovel.name = "Kurnik";
+        availableBuildingsToBuy.add(hovel);
+
+        rand = ThreadLocalRandom.current().nextInt(10000, 15000);
+        Warehouse wareHouse = new Warehouse();
+        wareHouse.name = "Stodoła";
+        wareHouse.cost = new BigDecimal(rand);
+        availableBuildingsToBuy.add(wareHouse);
+    }
+
+    //Dodaje dostępne zwierzątka do kupna w sklepie
+    public static void prepareAvailableAnimalsToBuy()
+    {
+        ArrayList<Integer> acceptableFoodTypes = new ArrayList<Integer>();
+        acceptableFoodTypes.add(FoodTypes.SANDWICH.getValue());
+        acceptableFoodTypes.add(FoodTypes.MEAT.getValue());
+        acceptableFoodTypes.add(FoodTypes.APPLE.getValue());
+
+        int rand = ThreadLocalRandom.current().nextInt(500, 1000);
+        Dog doggy = new Dog("Pies", new BigDecimal(rand), new BigDecimal(rand/2), 0.2, 20, 7, acceptableFoodTypes, 5, 4.00, 4.00, true, 1);
+        availableAnimalsToBuy.add(doggy);
+
+        rand = ThreadLocalRandom.current().nextInt(300, 900);
+        Cat cat = new Cat("Kot", new BigDecimal(rand), new BigDecimal(rand/2), 0.2, 20, 7, acceptableFoodTypes, 5, 4.00, 4.00, true, 1);
+        availableAnimalsToBuy.add(cat);
+
+        acceptableFoodTypes = new ArrayList<Integer>();
+        acceptableFoodTypes.add(FoodTypes.FORAGE.getValue()); //Pasza
+
+        rand = ThreadLocalRandom.current().nextInt(200, 500);
+        Chicken chicken = new Chicken("Kura", new BigDecimal(rand), new BigDecimal(rand/2), 0.2, 10, 7, acceptableFoodTypes, 5, 4.00, 4.00, false, 1);
+        availableAnimalsToBuy.add(chicken);
+
     }
 
     //Dodaje 10 losowych farm do listy startingFarms
