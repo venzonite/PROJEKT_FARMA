@@ -1,8 +1,7 @@
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 
-public class Plant {
+public class Seed {
     public BigDecimal costOfPreparingLandAndPlanting; //koszt przygotowania ziemi i sadzenia (w przeliczeniu na hektar)
     public BigDecimal costOfPestProtection; //koszt ochrony przed szkodnikami (w przeliczeniu na hektar)
     public BigDecimal cropYield; //wydajność upraw w tonach z hektara (ile możesz zebrać gotowego towaru)
@@ -11,11 +10,16 @@ public class Plant {
     public BigDecimal harvestCost; //koszt zbioru (w przeliczeniu na hektar)
     public BigDecimal purchasePricePerKilo; //cena skupu kilograma
 
-    public String name; //Nazwa rośliny
+    public BigDecimal seedCost; //Koszt nasion
+    public int plantingWeek; //Tydzień zasadzenia nasion.
+    public String seedName; //Nazwa nasiona
+    public String plantName; //Nazwa rośliny
 
-    public Plant(String name, BigDecimal costOfPestProtection, BigDecimal cropYield, int lengthOfPlantingToHarvest, ArrayList<Integer> weeksWithPossibilityToPlant, BigDecimal harvestCost, BigDecimal purchasePricePerKilo)
+    public Seed(String seedName, String plantName, BigDecimal seedCost, BigDecimal costOfPreparingLandAndPlanting, BigDecimal costOfPestProtection, BigDecimal cropYield, int lengthOfPlantingToHarvest, ArrayList<Integer> weeksWithPossibilityToPlant, BigDecimal harvestCost, BigDecimal purchasePricePerKilo)
     {
-        this.name = name;
+        this.seedName = seedName;
+        this.plantName = plantName;
+        this.seedCost = seedCost;
         this.costOfPreparingLandAndPlanting = costOfPreparingLandAndPlanting;
         this.costOfPestProtection = costOfPestProtection;
         this.cropYield = cropYield;
@@ -23,5 +27,16 @@ public class Plant {
         this.weeksWithPossibilityToPlant = weeksWithPossibilityToPlant;
         this.harvestCost = harvestCost;
         this.purchasePricePerKilo = purchasePricePerKilo;
+    }
+
+    //Sprawdza, czy nasiono wykiełkowało
+    public Boolean checkIfSeedGerminated()
+    {
+        if(Main.weekCounter-this.plantingWeek == this.lengthOfPlantingToHarvest) //Jeżeli nasiona wykiełkowały
+        {
+            return true;
+        }
+
+        return false;
     }
 }

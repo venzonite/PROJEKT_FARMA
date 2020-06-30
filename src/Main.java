@@ -13,6 +13,7 @@ public class Main {
 
     public static ArrayList<Farm> startingFarms;
     public static ArrayList<ArableLand> startingArableLands;
+    public static ArrayList<Seed> availableSeedsToBuy;
 
     public static Player player;
     public static int weekCounter = 1;
@@ -29,6 +30,9 @@ public class Main {
 
         startingArableLands = new ArrayList<ArableLand>();
         prepareStartingArableLands();
+
+        availableSeedsToBuy = new ArrayList<Seed>();
+        prepareAvailableSeedsToBuy();
 
         player = new Player();
         player.money = new BigDecimal(200000); //200.000 zł na start.
@@ -206,16 +210,24 @@ public class Main {
 
         }
 
-        //Tutaj akcje, które zdarzaja sie na koniec każdego tygodnia
+        //Akcje, które zdarzaja sie na koniec każdego tygodnia
+
+        doScheduledActionsAtTheEndOfWeek();
         doRandomActionsAtTheEndOfWeek();
 
         end_week:
 
         weekCounter++;
-
         currentWeek++;
+    }
 
-
+    //Akcje zaplanowane, które mają się dziać na koniec każdego tygodnia
+    public static void doScheduledActionsAtTheEndOfWeek()
+    {
+        for(ArableLand x : player.arableLands)
+        {
+            x.checkIfSeedsGerminated();
+        }
     }
 
     public static boolean showBuySellArableLandDialog()
@@ -521,6 +533,22 @@ public class Main {
         } catch(NumberFormatException nfe) {
             System.err.println("(Błąd) Musisz podać numer.");
             return chooseFarmToBuy();
+        }
+    }
+
+    //Dodaje dostępne nasiona do kupna w sklepie
+    public static void prepareAvailableSeedsToBuy()
+    {
+        for(Integer i=0;i<10;i++)
+        {
+            var weeksWithPossibilityToPlant = new ArrayList<Integer>();
+            weeksWithPossibilityToPlant.add(4);
+            weeksWithPossibilityToPlant.add(5);
+            weeksWithPossibilityToPlant.add(6);
+
+            //utworzyć klase zboże, przenica itp i tam dodac ceny statyczne w przeliczeniu na hektar
+            Seed tmpSeed = new Seed("Nasiono zboża","Zboże", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 90, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+            availableSeedsToBuy.add(tmpSeed);
         }
     }
 
