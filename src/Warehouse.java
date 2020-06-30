@@ -4,5 +4,7 @@ import java.util.List;
 //Stodoła
 public class Warehouse extends Building {
 
-    public ArrayList<Plant> storedPlants;
+    public ArrayList<Plant> storedPlants = new ArrayList<Plant>();
+
+
 }

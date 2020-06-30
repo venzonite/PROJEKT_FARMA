@@ -1,5 +1,6 @@
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class ArableLand {
     public double size;
@@ -20,7 +21,26 @@ public class ArableLand {
 
     public void checkIfSeedsGerminated()
     {
-        for(int i=0;i<seeds.size();i++)
+        Integer seedsCount = seeds.size();
+
+        Iterator<Seed> i = seeds.iterator();
+        while (i.hasNext()) {
+            Seed s = i.next();
+
+            if(s.checkIfSeedGerminated()) {
+
+                Plant x = new Plant(s.plantName, s.costOfPestProtection, s.cropYield, s.lengthOfPlantingToHarvest, s.weeksWithPossibilityToPlant, s.harvestCost, s.purchasePricePerKilo);
+
+                this.plants.add(x);
+                i.remove();
+
+            }
+
+            //i.remove();
+        }
+
+
+        /*for(int i=0;i<seedsCount;i++)
         {
             if(seeds.get(i).checkIfSeedGerminated())
             {
@@ -31,6 +51,6 @@ public class ArableLand {
                 this.plants.add(x);
                 this.seeds.remove(i);
             }
-        }
+        }*/
     }
 }

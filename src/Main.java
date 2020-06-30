@@ -1,10 +1,8 @@
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.Random;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -346,12 +344,197 @@ public class Main {
 
                 System.out.println("(info) Wybrano opcję \"Posadzenie roślin\"");
 
+                System.out.println("(Posadzenie roślin) Wybierz nasiona, które chcesz posadzić na polu (Wyświetlane są tylko te, które możesz teraz posadzić):");
+
+                System.out.println("0. Powrót");
+
+                HashMap<String, ArrayList<Seed>> hashMap = new HashMap<String, ArrayList<Seed>>();
+
+                //Tworzenie hash mapy, gdzie kluczem jest nazwa nasiona.
+                for(Seed x : player.seeds)
+                {
+                    if(x.weeksWithPossibilityToPlant.contains(currentWeek) == false)
+                        continue;
+
+                    if (!hashMap.containsKey(x.seedName)) {
+                        ArrayList<Seed> list = new ArrayList<Seed>();
+                        list.add(x);
+
+                        hashMap.put(x.seedName, list);
+                    } else {
+                        hashMap.get(x.seedName).add(x);
+                    }
+                }
+
+                Integer c = 1;
+                ArrayList<String> keys = new ArrayList<String>();
+                for(Map.Entry<String, ArrayList<Seed>> entry : hashMap.entrySet()) {
+                    String key = entry.getKey();
+                    ArrayList<Seed> value = entry.getValue();
+                    keys.add(key);
+
+                    System.out.println(c + ". " + key + " (" + value.size() + " szt. nasion)");
+                    c++;
+                }
+
+                writtenNumber = readNumberFromConsole();
+
+                if(writtenNumber == 0)
+                    return;
+
+                Integer index = writtenNumber-1;
+
+                if(index > hashMap.size()-1)
+                {
+                    System.out.println("(blad) Podano zly numer nasion.");
+                    return;
+                }
+
+                //Napisać kod na sadzenie nasion
+
+                ArrayList<Seed> selectedSeeds = hashMap.get(keys.get(index));
+
+                System.out.println("(Posadzenie roślin) Wybrano nasiona: " + keys.get(index) + ". (Posiadasz " + selectedSeeds.size() + " szt.)");
+                System.out.println("(Posadzenie roślin) Podaj ile sztuk nasion chcesz posadzić:");
+                System.out.println("0. Powrót");
+
+                writtenNumber = readNumberFromConsole();
+
+                if(writtenNumber == 0)
+                    return;
+
+                if(writtenNumber > selectedSeeds.size())
+                {
+                    System.out.println("(blad) Nie posiadasz tyle nasion.");
+                    return;
+                }
+
+                BigDecimal costOfPlanting = selectedSeeds.get(0).costOfPreparingLandAndPlanting.multiply(new BigDecimal(writtenNumber));
+                costOfPlanting = costOfPlanting.setScale(2, RoundingMode.HALF_EVEN);
+
+                if(Utils.lessThan(player.money, costOfPlanting))
+                {
+                    System.out.println("(blad) Nie stać Cię na przygotowanie ziemi dla tylu nasion.");
+                    return;
+                }
+
+                Integer selectedSeedCount = writtenNumber;
+
+                System.out.println("(Posadzenie roślin) Wybierz pole, na ktorym chcesz zasadzic nasiona:");
+                System.out.println("0. Powrót");
+
+                counter = 1;
+                for(ArableLand x : player.arableLands)
+                {
+                    System.out.println(counter + ". " + x.name);
+                    counter++;
+                }
+
+                writtenNumber = readNumberFromConsole();
+
+                if(writtenNumber == 0)
+                    return;
+
+                index = writtenNumber-1;
+
+                if(index > player.arableLands.size()-1)
+                {
+                    System.out.println("(blad) Podano zly numer pola.");
+                    return;
+                }
+
+                for(int i=0;i<selectedSeedCount;i++) {
+                    player.arableLands.get(index).seeds.add(selectedSeeds.get(0));
+
+                }
+
+                //Usuwane nasion ze stanu gracza po zasaniu:
+
+                Integer seedsRemoved = 0;
+                for(int i=0;i<player.seeds.size();i++)
+                {
+                    if(player.seeds.get(i).seedName.equals(selectedSeeds.get(0).seedName))
+                    {
+                        player.seeds.remove(i);
+                        seedsRemoved++;
+
+                        if(seedsRemoved == selectedSeedCount)
+                            break;
+                    }
+                }
+
+                player.money = player.money.subtract(costOfPlanting);
+                System.out.println("(Posadzenie roślin) Posadzono " + selectedSeedCount + " szt. nasion: " + selectedSeeds.get(0).seedName + " na polu: " + player.arableLands.get(index).name);
+
                 showAvailableActionsDialog();
                 return;
 
             case 6: //6. Zbiory roślin (jeżeli masz gotowe do zebrania plony)
 
                 System.out.println("(info) Wybrano opcję \"Zbiory roślin\"");
+
+                System.out.println("(Zbiory roślin) Wybierz farmę, gdzie chcesz zebrać rośliny:");
+
+                System.out.println("0. Powrót");
+
+                c = 1;
+                for(ArableLand x : player.arableLands)
+                {
+                    System.out.println(c + ". " + x.name + " (Suma plonów: " + x.plants.size() + ")");
+                    c++;
+                }
+
+                writtenNumber = readNumberFromConsole();
+
+                if(writtenNumber == 0)
+                    return;
+
+                index = writtenNumber-1;
+
+                if(index > player.arableLands.size()-1)
+                {
+                    System.out.println("(blad) Nie posiadasz takiego pola.");
+                    return;
+                }
+
+                System.out.println("(Zbiory roślin) Wybrano pole do zbioru roślin.");
+
+                Integer arableLandIndex = index;
+
+                Boolean wareHouseFound = false;
+                Integer farmIndexWithWareHouse = -1;
+
+                for(int w=0;w<player.farms.size();w++)
+                {
+                    for(Building b : player.farms.get(w).buildings)
+                    {
+                        if(b.name.contains("todo")) //Stodoła
+                        {
+                            farmIndexWithWareHouse = w;
+                            wareHouseFound = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(wareHouseFound == false)
+                {
+                    System.out.println("(blad) Nie mozesz zebrac plonow. Nie posiadasz zadnej stodoly.");
+                    return;
+                }
+
+                for(Building b : player.farms.get(farmIndexWithWareHouse).buildings)
+                {
+                    if(b.name.contains("todo")) //Stodoła
+                    {
+                        //b.
+
+                        ((Warehouse)b).storedPlants.addAll(player.arableLands.get(arableLandIndex).plants); //tu gdzies blad
+                        player.arableLands.get(arableLandIndex).plants.clear();
+                    }
+                }
+
+                System.out.println("(Zbiory roślin) Zebrano rośliny z pola.");
 
                 showAvailableActionsDialog();
                 return;
@@ -824,25 +1007,64 @@ public class Main {
     public static void prepareAvailableSeedsToBuy()
     {
         var weeksWithPossibilityToPlant = new ArrayList<Integer>();
-        weeksWithPossibilityToPlant.add(4);
-        weeksWithPossibilityToPlant.add(5);
-        weeksWithPossibilityToPlant.add(6);
-        Seed tmpSeed = new Seed("Nasiono zboża","Zboże", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 90, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
+        weeksWithPossibilityToPlant.add(20);
+        weeksWithPossibilityToPlant.add(21);
+        weeksWithPossibilityToPlant.add(22);
+        weeksWithPossibilityToPlant.add(23);
+        weeksWithPossibilityToPlant.add(24);
+        weeksWithPossibilityToPlant.add(25);
+        weeksWithPossibilityToPlant.add(26);
+        weeksWithPossibilityToPlant.add(27);
+        weeksWithPossibilityToPlant.add(28);
+        weeksWithPossibilityToPlant.add(29);
+        weeksWithPossibilityToPlant.add(30);
+
+        Seed tmpSeed = new Seed("Nasiono zboża","Zboże", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
         availableSeedsToBuy.add(tmpSeed);
 
 
         weeksWithPossibilityToPlant = new ArrayList<Integer>();
-        weeksWithPossibilityToPlant.add(6);
+        weeksWithPossibilityToPlant.add(20);
+        weeksWithPossibilityToPlant.add(21);
+        weeksWithPossibilityToPlant.add(22);
+        weeksWithPossibilityToPlant.add(23);
+        weeksWithPossibilityToPlant.add(24);
+        weeksWithPossibilityToPlant.add(25);
+        weeksWithPossibilityToPlant.add(26);
+        weeksWithPossibilityToPlant.add(27);
+        weeksWithPossibilityToPlant.add(28);
+        weeksWithPossibilityToPlant.add(29);
+        weeksWithPossibilityToPlant.add(30);
         tmpSeed = new Seed("Nasiono jęczmienia","Jęczmień", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
         availableSeedsToBuy.add(tmpSeed);
 
         weeksWithPossibilityToPlant = new ArrayList<Integer>();
-        weeksWithPossibilityToPlant.add(6);
+        weeksWithPossibilityToPlant.add(20);
+        weeksWithPossibilityToPlant.add(21);
+        weeksWithPossibilityToPlant.add(22);
+        weeksWithPossibilityToPlant.add(23);
+        weeksWithPossibilityToPlant.add(24);
+        weeksWithPossibilityToPlant.add(25);
+        weeksWithPossibilityToPlant.add(26);
+        weeksWithPossibilityToPlant.add(27);
+        weeksWithPossibilityToPlant.add(28);
+        weeksWithPossibilityToPlant.add(29);
+        weeksWithPossibilityToPlant.add(30);
         tmpSeed = new Seed("Nasiono pszenicy","Pszenica", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
         availableSeedsToBuy.add(tmpSeed);
 
         weeksWithPossibilityToPlant = new ArrayList<Integer>();
-        weeksWithPossibilityToPlant.add(7);
+        weeksWithPossibilityToPlant.add(20);
+        weeksWithPossibilityToPlant.add(21);
+        weeksWithPossibilityToPlant.add(22);
+        weeksWithPossibilityToPlant.add(23);
+        weeksWithPossibilityToPlant.add(24);
+        weeksWithPossibilityToPlant.add(25);
+        weeksWithPossibilityToPlant.add(26);
+        weeksWithPossibilityToPlant.add(27);
+        weeksWithPossibilityToPlant.add(28);
+        weeksWithPossibilityToPlant.add(29);
+        weeksWithPossibilityToPlant.add(30);
         tmpSeed = new Seed("Nasiono ziemniaka","Ziemniak", new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), new BigDecimal(0.05), 48, weeksWithPossibilityToPlant, new BigDecimal(0.05), new BigDecimal(0.05));
         availableSeedsToBuy.add(tmpSeed);
     }
